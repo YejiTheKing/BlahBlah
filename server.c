@@ -24,21 +24,20 @@ void check_arg(int argc, char *argv[]);
 void socket_setting(char *argv[]);
 void *ftpserv();
 void *chatserv();
+void *handl_ftp(void *arg);
 int tcp_listen(int host, int port, int backlog);
 
-
 void* thread_return;
-char buf[100], command[5], filename[20];
-int clnt_cnt=0, len, filehandle, size, i, k, c;
-int clnt_socks[MAX_CLNT];
+int clnt_cnt=0, ftp_cnt = 0;
+int clnt_socks[MAX_CLNT], ftp_socks[MAX_CLNT];
 int serv_sock, clnt_sock;
 int sock1, sock2;
-int clnt_adr_sz;
+int clnt_adr_sz, ftp_sz;
 struct sockaddr_in serv_adr, clnt_adr, server, client;
 struct stat obj;
 struct tm *t;
 time_t timer;
-pthread_t t_id;
+pthread_t t_id, ftp_id;
 pthread_t chat, ftp;
 pthread_mutex_t mutx;
 
@@ -56,12 +55,13 @@ int main(int argc, char *argv[])
     while(1)
     {
         pthread_create(&chat, NULL, chatserv, NULL);
-        pthread_create(&ftp, NULL, ftpserv, NULL);
-        pthread_join(ftp, &thread_return);
         pthread_join(chat, &thread_return);
+
+        if(clnt_cnt == 0)
+            exit(0);
+
     }
 
-    close(serv_sock);
     return 0;
 }
 
@@ -83,11 +83,24 @@ void *chatserv()
         printf("(%d-%d-%d %d:%d)\n", t->tm_year+1900, t->tm_mon+1, t->tm_mday,
         t->tm_hour, t->tm_min);
         printf(" chatter (%d/100)\n", clnt_cnt);
+
+        ftp_sz = sizeof(client);
+	    sock2 = accept(sock1, (struct sockaddr*)&client, &ftp_sz);
+
+        pthread_mutex_lock(&mutx);
+        ftp_socks[ftp_cnt++]=sock2;
+        pthread_mutex_unlock(&mutx);
+
+        pthread_create(&ftp_id, NULL, handl_ftp, (void*)&sock2);
+        pthread_detach(ftp_id);
     }
 }
 
-void *ftpserv()
+void *handl_ftp(void *arg)
 {
+    int sock2=*((int*)arg);
+    char buf[100], command[5], filename[20];
+    int filehandle, size, i ,k, len, c;
     while (1) {
 		recv(sock2, buf, 100, 0);
 		sscanf(buf, "%s", command);
@@ -154,8 +167,10 @@ void *ftpserv()
 		}
 	}
 }
+
 void socket_setting(char *argv[])
 {
+    //chat
     serv_sock=socket(PF_INET, SOCK_STREAM, 0);
     
     memset(&serv_adr, 0, sizeof(serv_adr));
@@ -168,10 +183,18 @@ void socket_setting(char *argv[])
     if (listen(serv_sock, 5)==-1)
         error_handling("listen() error");
 
-    sock1 = tcp_listen(INADDR_ANY, atoi(argv[1]), 5);
+    //ftp
+    sock1=socket(AF_INET, SOCK_STREAM, 0);
 
-	len = sizeof(client);
-	sock2 = accept(sock1, (struct sockaddr*)&client, &len);
+    memset(&server, 0, sizeof(server));
+    server.sin_family = AF_INET;
+    server.sin_addr.s_addr =htonl(INADDR_ANY);
+    server.sin_port =htons(atoi(argv[1])+1);
+
+    if (bind(sock1, (struct sockaddr*)&server, sizeof(server))==-1)
+        error_handling("bind() error");
+    if (listen(sock1, 5)==-1)
+        error_handling("listen() error");
 }
 
 void check_arg(int argc, char *argv[])
@@ -183,6 +206,7 @@ void check_arg(int argc, char *argv[])
     }
  
 }
+
 void *handle_clnt(void *arg)
 {
     int clnt_sock=*((int*)arg);
@@ -240,31 +264,11 @@ char* serverState(int count)
 void menu(char port[])
 {
     system("clear");
-    printf(" **** moon/sun chat server ****\n");
+    printf(" **** Blah-Blah ****\n");
     printf(" server port    : %s\n", port);
     printf(" server state   : %s\n", serverState(clnt_cnt));
     printf(" max connection : %d\n", MAX_CLNT);
+    printf(" server is always running \n");
+    printf(" if you want to quit press ctrl + c \n");
     printf(" ****          Log         ****\n\n");
-}
-
-int tcp_listen(int host, int port, int backlog) {
-	int sd;
-	struct sockaddr_in servaddr;
-    port++;
-	sd = socket(AF_INET, SOCK_STREAM, 0);
-	if (sd == -1) {
-		perror("socket fail");
-		exit(1);
-	}
-	
-	bzero((char *)&servaddr, sizeof(servaddr));
-	servaddr.sin_family = AF_INET;
-	servaddr.sin_addr.s_addr = htonl(host);
-	servaddr.sin_port = htons(port);
-	if (bind(sd, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
-		perror("bind fail");  exit(1);
-	}
-	
-	listen(sd, backlog);
-	return sd;
 }

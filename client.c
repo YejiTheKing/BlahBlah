@@ -10,6 +10,7 @@
 #include<sys/sendfile.h>
 #include<pthread.h>
 #include<time.h>
+#include<signal.h>
 
 
 #define BUF_SIZE 100
@@ -49,6 +50,7 @@ void* thread_return;
 
 int main(int argc, char *argv[])
 {
+    signal(SIGINT, SIG_IGN);
     check_arg(argc,argv);
     print_time();
     create_socket_connection(argv);
@@ -177,7 +179,7 @@ void* ftp(void *arg)
 			recv(ftpsock, &size, sizeof(int), 0);
 			f = malloc(size);
 			recv(ftpsock, f, size, 0);
-			filehandle = creat("temp.txt", O_WRONLY);
+			filehandle = creat("temp.txt", 0777);
 			write(filehandle, f, size);
 			close(filehandle);
 			printf("--The Remote Directory List--\n");
@@ -197,6 +199,7 @@ void* ftp(void *arg)
 		}
 		else if (!strcmp(bufmsg, "quit\n")) {
 			strcpy(buf, "quit");
+            printf("Exit ftp service bye~\n");
             break;
 		}
 	}
@@ -231,7 +234,7 @@ void* send_msg(void* arg)
             continue;
         }
 
-        else if (!strcmp(msg, "q\   n") || !strcmp(msg, "Q\n"))
+        else if (!strcmp(msg, "q\n") || !strcmp(msg, "Q\n"))
         {
             close(sock);
             exit(0);
