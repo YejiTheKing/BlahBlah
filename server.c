@@ -80,6 +80,7 @@ void *chatserv()
         t->tm_hour, t->tm_min);
         printf(" chatter (%d/100)\n", clnt_cnt);
 
+
         ftp_sz = sizeof(client);
 	    sock2 = accept(sock1, (struct sockaddr*)&client, &ftp_sz);
 

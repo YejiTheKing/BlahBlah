@@ -198,7 +198,12 @@ void* ftp(void *arg)
 		}
 		else if (!strcmp(bufmsg, "quit\n")) {
 			strcpy(buf, "quit");
-            printf("Exit ftp service bye~\n");
+            send(ftpsock, buf, 100, 0);
+			recv(ftpsock, &status, 100, 0);
+			if (status) {
+				printf("Exit ftp service bye~\n");
+				break;
+			}
             break;
 		}
 	}
@@ -235,6 +240,9 @@ void* send_msg(void* arg)
 
         else if (!strcmp(msg, "q\n") || !strcmp(msg, "Q\n"))
         {
+            printf(" >> Bye Bye !! \n");
+            sprintf(myInfo, "%s's exit. IP_%s\n",name , clnt_ip);
+            write(sock, myInfo, strlen(myInfo));
             close(sock);
             exit(0);
         }
