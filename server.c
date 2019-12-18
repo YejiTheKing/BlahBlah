@@ -56,10 +56,6 @@ int main(int argc, char *argv[])
     {
         pthread_create(&chat, NULL, chatserv, NULL);
         pthread_join(chat, &thread_return);
-
-        if(clnt_cnt == 0)
-            exit(0);
-
     }
 
     return 0;

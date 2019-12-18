@@ -120,7 +120,6 @@ void* ftp(void *arg)
 		printf("\033[1;32mclient> ");
 		fgets(bufmsg, MAXLINE, stdin); 
 		fprintf(stderr, "\033[97m");
-        printf("%s\n", bufmsg);
 		if (!strcmp(bufmsg, "get\n")) {
 			printf("filename to download : ");
 			scanf("%s", filename);       
@@ -303,7 +302,7 @@ void changeName()
 void menu()
 {
     system("clear");
-    printf(" **** Chat Client ****\n");
+    printf(" **** Blah Blah ****\n");
     printf(" server port : %s \n", server_port);
     printf(" client IP   : %s \n", clnt_ip);
     printf(" chat name   : %s \n", name);
@@ -312,7 +311,7 @@ void menu()
     printf(" if you want to select menu -> !menu\n");
     printf(" 1. change name\n");
     printf(" 2. clear/update\n");
-     printf(" if you want to send file -> !file\n");
+     printf(" if you want to do ftp -> !file\n");
     printf(" **********************************\n");
     printf(" Exit -> q & Q\n\n");
 }    
