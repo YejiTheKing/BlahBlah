@@ -198,12 +198,14 @@ void* ftp(void *arg)
 		}
 		else if (!strcmp(bufmsg, "quit\n")) {
 			strcpy(buf, "quit");
+            printf("Exit ftp service bye~\n");
+            /*
             send(ftpsock, buf, 100, 0);
 			recv(ftpsock, &status, 100, 0);
 			if (status) {
 				printf("Exit ftp service bye~\n");
 				break;
-			}
+			}*/
             break;
 		}
 	}

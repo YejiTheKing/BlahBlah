@@ -80,7 +80,6 @@ void *chatserv()
         t->tm_hour, t->tm_min);
         printf(" chatter (%d/100)\n", clnt_cnt);
 
-
         ftp_sz = sizeof(client);
 	    sock2 = accept(sock1, (struct sockaddr*)&client, &ftp_sz);
 
@@ -90,6 +89,7 @@ void *chatserv()
 
         pthread_create(&ftp_id, NULL, handl_ftp, (void*)&sock2);
         pthread_detach(ftp_id);
+
     }
 }
 
